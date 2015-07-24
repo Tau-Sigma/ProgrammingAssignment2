@@ -1,42 +1,52 @@
 ## The functions take a matrix and produce its inverse, which is then stored.
-## In case the function makeCacheMartix was used again to create a matrix the cacheSolve function calculates a new inverse. Otherwise it hands over the stored inverse
+## Only in case makeCacheMartix receives a matrix not identical with the previously loaded one the 
+## cacheSolve function calculates a new inverse. Otherwise it hands over the stored inverse.
 
 ## The makeCacheMatrix function creates a list containing a function to
-##    set the matrix
 ##    get the matrix
+##    check if the matrix is identical with the one previously loaded
+##    set the IM (identical matrix) flag
 ##    set the inverse
 ##    get the inverse
 
 
 makeCacheMatrix <- function(x = matrix()) {
-        Inv <- NULL
-        setmatrix <- function(y) {
-                x <<- y
-                Inv <<- NULL
+        IM <-FALSE #identical matrix flag
+        if(exists("z")) {
+                if(identical(z,x)==TRUE) IM<-TRUE
         }
+        else z<<-x #cache the matrix so that it can be compared with next loaded matrix
         getmatrix <- function() x
         setinverse <- function(inverse) Inv <<- inverse
-        getinverse <- function() Inv
-        list(setmatrix = setmatrix,
-             getmatrix = getmatrix,
+        comparematrix <- function() IM
+        setIM<-function(identical) IM <<- identical
+        getinverse <- function() {
+                if(exists("Inv")) Inv
+                else Inv<<-NULL
+        }
+        list(getmatrix = getmatrix,
              setinverse = setinverse,
-             getinverse = getinverse)
+             getinverse = getinverse,
+             comparematrix = comparematrix,
+             setIM = setIM)
 }
 
 
 ## The following function calculates the inverse of the matrix handed to the above function. Before
-## doing this it actually checks to see if the inverse has already been calculated. If so, it gets
-## the inverse from the cache and skips the computation. Otherwise, it calculates the inverse of the data and sets the value of the inverse in the cache via the setinverse function.
+## doing this it actually checks to see if the inverse has already been calculated for the respective ## matrix. If so, it takes the inverse from the cache and skips the computation. Otherwise, it
+## calculates the inverse from the new matrix and sets the value of the inverse in the cache via the ## setinverse function.
 
 cacheSolve <- function(x, ...) {
         ## Return a matrix that is the inverse of 'x'
         Inv <- x$getinverse()
-        if(!is.null(Inv)) {
+        IM<-x$comparematrix()
+        if(!is.null(Inv)&IM==TRUE) {
                 message("getting cached inverse")
                 return(Inv)
         }
         data <- x$getmatrix()
         Inv <- solve(data)
         x$setinverse(Inv)
+        x$setIM(TRUE)
         Inv
 }
